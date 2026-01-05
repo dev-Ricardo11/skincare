@@ -96,8 +96,9 @@ export default function OrderForm({
       setSuccess(true);
     } catch (err: any) {
       console.error('Error al enviar email:', err);
-      setError(`No se pudo enviar el correo de confirmación: ${err?.text || err?.message || 'Error desconocido'}. Pero no te preocupes, puedes enviarlo por WhatsApp ahora.`);
-      // En este caso no marcamos éxito inmediatamente para que el usuario vea el error
+      setError('Hubo un pequeño problema al enviar el correo, pero tu pedido ha sido registrado. Por favor, confírmalo por WhatsApp para asegurar tu entrega.');
+      // En este caso marcamos éxito para que puedan cerrar por WhatsApp
+      setSuccess(true);
     } finally {
       setLoading(false);
     }
