@@ -72,30 +72,32 @@ export default function OrderForm({
     setLoading(true);
 
     try {
+      // Inicializar EmailJS (opcional pero recomendado)
+      emailjs.init(EMAILJS_PUBLIC_KEY);
+
       // Enviar correo via EmailJS
       const templateParams = {
         customer_name: formData.name,
         customer_email: formData.email,
         customer_phone: formData.phone,
-        items_list: cartItems.map(item => `${item.name} x ${item.quantity}`).join(', '),
+        items_list: cartItems.map(item => `${item.name} x ${item.quantity}`).join('\n'),
         total_amount: `$${total.toLocaleString('es-CO')}`,
         to_email: 'richyrami05@gmail.com'
       };
 
-      if (EMAILJS_SERVICE_ID) {
-        await emailjs.send(
-          EMAILJS_SERVICE_ID,
-          EMAILJS_TEMPLATE_ID,
-          templateParams,
-          EMAILJS_PUBLIC_KEY
-        );
-      }
+      const result = await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams,
+        EMAILJS_PUBLIC_KEY
+      );
 
+      console.log('EmailJS Result:', result);
       setSuccess(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error al enviar email:', err);
-      // Aun así marcamos éxito para que el usuario pueda usar WhatsApp si falla el mail
-      setSuccess(true);
+      setError(`No se pudo enviar el correo de confirmación: ${err?.text || err?.message || 'Error desconocido'}. Pero no te preocupes, puedes enviarlo por WhatsApp ahora.`);
+      // En este caso no marcamos éxito inmediatamente para que el usuario vea el error
     } finally {
       setLoading(false);
     }
