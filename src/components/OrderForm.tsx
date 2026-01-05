@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Mail } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, MessageCircle } from 'lucide-react';
 import type { CartItem } from '../App';
 
 interface OrderFormProps {
@@ -55,6 +55,12 @@ export default function OrderForm({
     return true;
   };
 
+  const generateWhatsAppMessage = () => {
+    const itemsList = cartItems.map(item => `• ${item.name} x ${item.quantity}`).join('\n');
+    const message = `¡Hola! Acabo de hacer un pedido en la página:\n\n*Cliente:* ${formData.name}\n*Teléfono:* ${formData.phone}\n\n*Pedido:*\n${itemsList}\n\n*Total:* $${total.toLocaleString('es-CO')}\n\n¿Me confirman los datos para el envío?`;
+    return encodeURIComponent(message);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
@@ -63,87 +69,103 @@ export default function OrderForm({
 
     setLoading(true);
 
-    try {
-      const response = await fetch('http://localhost:3001/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customer_name: formData.name,
-          customer_email: formData.email,
-          customer_phone: formData.phone,
-          total_amount: total,
-          items: cartItems,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al procesar la orden');
-      }
-
-      setSuccess(true);
-      setTimeout(() => {
-        onOrderComplete();
-      }, 2000);
-    } catch (err) {
-      setError('Error al procesar la orden. Por favor intenta de nuevo.');
-    } finally {
+    // Simular procesamiento local (ya que no hay backend)
+    setTimeout(() => {
       setLoading(false);
-    }
+      setSuccess(true);
+    }, 1000);
   };
 
   if (success) {
     return (
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md border border-pink-200/50 p-8 text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Mail className="w-8 h-8 text-green-600" />
+      <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl border border-purple-100 p-8 text-center animate-fade-in">
+        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="w-10 h-10 text-green-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Orden Confirmada</h2>
-        <p className="text-gray-600 mb-2">
-          ¡Tu pedido ha sido enviado exitosamente!
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">¡Pedido Listo!</h2>
+        <p className="text-gray-600 mb-8">
+          Tu pedido ha sido registrado. Para una atención más rápida, envíanos un mensaje por WhatsApp.
         </p>
-        <p className="text-sm text-gray-500">
-          Recibirás una confirmación en tu correo electrónico
-        </p>
+
+        <div className="space-y-4">
+          <a
+            href={`https://wa.me/573133432418?text=${generateWhatsAppMessage()}`}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white font-bold py-4 rounded-2xl shadow-lg hover:scale-105 transition-transform"
+          >
+            <MessageCircle className="w-6 h-6" />
+            Enviar Pedido por WhatsApp
+          </a>
+
+          <button
+            onClick={onOrderComplete}
+            className="w-full text-purple-600 font-semibold py-2 hover:underline"
+          >
+            Volver al Inicio
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto py-8">
       <button
         onClick={onCancel}
-        className="flex items-center gap-2 text-pink-500 hover:text-pink-600 mb-6 font-medium"
+        className="flex items-center gap-2 text-purple-600 hover:text-purple-700 mb-8 font-semibold transition-colors group"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
         Volver al catálogo
       </button>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="bg-white rounded-lg shadow-md border border-pink-200/50 p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            Información de Entrega
-          </h2>
+      <div className="grid lg:grid-cols-5 gap-8">
+        <div className="lg:col-span-3 bg-white rounded-3xl shadow-xl border border-purple-100 p-8">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-purple-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">
+              Información de Entrega
+            </h2>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Nombre Completo
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Tu nombre"
-                className="w-full px-4 py-2 border border-pink-200 rounded-lg focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-300"
-              />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Nombre Completo
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Tu nombre"
+                  className="w-full px-5 py-3 border border-purple-100 bg-purple-50/30 rounded-2xl focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-200/50 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Número de Celular
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  required
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Ej: 322 306 4226"
+                  className="w-full px-5 py-3 border border-purple-100 bg-purple-50/30 rounded-2xl focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-200/50 transition-all"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Correo Electrónico
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Correo Electrónico (Opcional)
               </label>
               <input
                 type="email"
@@ -151,26 +173,12 @@ export default function OrderForm({
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="tu@email.com"
-                className="w-full px-4 py-2 border border-pink-200 rounded-lg focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-300"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Número de Celular
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="Ej: +57 300 123 4567"
-                className="w-full px-4 py-2 border border-pink-200 rounded-lg focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-300"
+                className="w-full px-5 py-3 border border-purple-100 bg-purple-50/30 rounded-2xl focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-200/50 transition-all"
               />
             </div>
 
             {error && (
-              <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+              <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-sm font-medium animate-shake">
                 {error}
               </div>
             )}
@@ -178,51 +186,54 @@ export default function OrderForm({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all duration-200 shadow-md"
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl transition-all duration-300 shadow-xl shadow-purple-200"
             >
               {loading ? 'Procesando...' : 'Confirmar Compra'}
             </button>
           </form>
         </div>
 
-        <div>
-          <div className="bg-white rounded-lg shadow-md border border-pink-200/50 p-6 sticky top-8">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Resumen del Pedido</h3>
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-3xl shadow-xl border border-purple-100 p-8 sticky top-10">
+            <h3 className="text-xl font-bold text-gray-800 mb-6">Resumen del Pedido</h3>
 
-            <div className="space-y-3 mb-6">
+            <div className="space-y-4 mb-8 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
               {cartItems.map(item => (
                 <div
                   key={item.product_id}
-                  className="flex justify-between text-sm text-gray-700"
+                  className="flex justify-between items-center text-sm"
                 >
-                  <span>
-                    {item.name} x {item.quantity}
-                  </span>
-                  <span className="font-semibold">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-gray-800">{item.name}</span>
+                    <span className="text-gray-500">Cantidad: {item.quantity}</span>
+                  </div>
+                  <span className="font-bold text-purple-600">
                     ${(item.price * item.quantity).toLocaleString('es-CO')}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-pink-200 pt-4">
-              <div className="flex justify-between text-gray-700 mb-2">
+            <div className="border-t border-purple-50 pt-6 space-y-3">
+              <div className="flex justify-between text-gray-600">
                 <span>Subtotal:</span>
-                <span>${total.toLocaleString('es-CO')}</span>
+                <span className="font-semibold">${total.toLocaleString('es-CO')}</span>
               </div>
-              <div className="flex justify-between text-gray-700 mb-4">
+              <div className="flex justify-between text-gray-600">
                 <span>Envío:</span>
-                <span className="text-green-600 font-semibold">Gratis</span>
+                <span className="text-green-600 font-bold bg-green-50 px-2 rounded-lg text-xs flex items-center">Gratis</span>
               </div>
 
-              <div className="flex justify-between font-bold text-lg text-pink-500 bg-pink-50 p-3 rounded">
+              <div className="flex justify-between items-center font-black text-2xl text-purple-600 pt-4">
                 <span>Total:</span>
                 <span>${total.toLocaleString('es-CO')}</span>
               </div>
 
-              <p className="text-xs text-gray-500 mt-4 text-center">
-                Nos pondremos en contacto para confirmar tu pedido
-              </p>
+              <div className="mt-8 p-4 bg-purple-50 rounded-2xl text-center">
+                <p className="text-xs text-purple-400 font-medium">
+                  Nos pondremos en contacto contigo para coordinar la entrega y el pago.
+                </p>
+              </div>
             </div>
           </div>
         </div>
