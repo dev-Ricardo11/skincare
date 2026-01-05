@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { ArrowLeft, CheckCircle2, MessageCircle } from 'lucide-react';
+import emailjs from 'emailjs-com';
 import type { CartItem } from '../App';
+
+// Configura aquí tus ID de EmailJS
+const EMAILJS_SERVICE_ID = 'service_pp431hh'; // Reemplazar con Service ID
+const EMAILJS_TEMPLATE_ID = 'template_mz9o4ci'; // Reemplazar con Template ID
+const EMAILJS_PUBLIC_KEY = 'o_WVm7Vr3iGM4PywB'; // Reemplazar con Public Key
 
 interface OrderFormProps {
   cartItems: CartItem[];
@@ -44,10 +50,6 @@ export default function OrderForm({
       setError('El nombre es requerido');
       return false;
     }
-    if (!formData.email.trim() || !formData.email.includes('@')) {
-      setError('Email válido es requerido');
-      return false;
-    }
     if (!formData.phone.trim() || formData.phone.replace(/\D/g, '').length < 7) {
       setError('Teléfono válido es requerido');
       return false;
@@ -69,11 +71,34 @@ export default function OrderForm({
 
     setLoading(true);
 
-    // Simular procesamiento local (ya que no hay backend)
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // Enviar correo via EmailJS
+      const templateParams = {
+        customer_name: formData.name,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        items_list: cartItems.map(item => `${item.name} x ${item.quantity}`).join(', '),
+        total_amount: `$${total.toLocaleString('es-CO')}`,
+        to_email: 'richyrami05@gmail.com'
+      };
+
+      if (EMAILJS_SERVICE_ID) {
+        await emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          templateParams,
+          EMAILJS_PUBLIC_KEY
+        );
+      }
+
       setSuccess(true);
-    }, 1000);
+    } catch (err) {
+      console.error('Error al enviar email:', err);
+      // Aun así marcamos éxito para que el usuario pueda usar WhatsApp si falla el mail
+      setSuccess(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (success) {
